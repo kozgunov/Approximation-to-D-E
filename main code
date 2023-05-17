@@ -1,0 +1,42 @@
+import tensorflow as tf
+import numpy as np
+
+# Define the differential equation
+def differential_eqn(x, y):
+    return tf.math.sin(x) - 2*y
+
+# Define the boundaries
+x0 = 0.0
+xN = 1.0
+y0 = 0.0
+
+# Define the number of points
+N = 10
+
+# Create the input data
+x_data = np.linspace(x0, xN, N)
+
+# Define the initial guess for y
+y_init = tf.Variable(tf.zeros([N]))
+
+# Define the optimizer
+optimizer = tf.optimizers.Adam(learning_rate=0.01)
+
+# Define the loss function
+def loss_fn(y, y_init):
+    return tf.reduce_mean(tf.square(y - y_init))
+
+# Train the model
+for i in range(1000):
+    with tf.GradientTape() as tape:
+        y = y_init
+        for j in range(N-1):
+            y = y + (x_data[j+1] - x_data[j]) * differential_eqn(x_data[j], y)
+        loss = loss_fn(y, y_init)
+    gradients = tape.gradient(loss, y_init)
+    optimizer.apply_gradients(zip([gradients], [y_init]))
+    if i % 100 == 0:
+        print("Loss at step {:03d}: {:.3f}".format(i, loss))
+
+# Print the final solution
+print("Solution: ", y.numpy())
