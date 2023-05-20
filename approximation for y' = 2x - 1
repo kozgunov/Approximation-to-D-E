@@ -1,0 +1,56 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+from sklearn.linear_model import LinearRegression
+from sklearn.neural_network import MLPRegressor
+from sklearn.metrics import mean_squared_error
+
+# Differential Equation: y' = 2x - 1
+
+# Generate data
+np.random.seed(0)
+X = np.random.rand(100, 1) * 10 - 5
+y = 2 * X - 1 + np.random.randn(100, 1) * 0.1
+
+# Gaussian Processes
+kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
+gp.fit(X, y)
+X_pred = np.linspace(-5, 5, 100).reshape(-1, 1)
+y_pred, std = gp.predict(X_pred, return_std=True)
+
+# Polynomial Regression
+poly_reg = LinearRegression()
+poly_reg.fit(X, y)
+X_poly = np.linspace(-5, 5, 100).reshape(-1, 1)
+y_poly = poly_reg.predict(X_poly)
+
+# Neural Networks
+nn = MLPRegressor(hidden_layer_sizes=(50,), max_iter=1000, learning_rate_init=0.01)
+nn.fit(X, y.ravel())
+X_nn = np.linspace(-5, 5, 100).reshape(-1, 1)
+y_nn = nn.predict(X_nn)
+
+# Plot the results
+plt.scatter(X, y, color='black', label='Data')
+plt.plot(X_pred, y_pred, color='blue', label='Gaussian Processes')
+plt.plot(X_poly, y_poly, color='red', label='Polynomial Regression')
+plt.plot(X_nn, y_nn, color='green', label='Neural Networks')
+plt.legend()
+plt.show()
+
+# Evaluate the models
+y_pred_gp = gp.predict(X)
+mse_gp = mean_squared_error(y, y_pred_gp)
+
+y_pred_poly = poly_reg.predict(X)
+mse_poly = mean_squared_error(y, y_pred_poly)
+
+y_pred_nn = nn.predict(X)
+mse_nn = mean_squared_error(y, y_pred_nn)
+
+print('MSE (Gaussian Processes):', mse_gp)
+print('MSE (Polynomial Regression):', mse_poly)
+print('MSE (Neural Networks):', mse_nn)
