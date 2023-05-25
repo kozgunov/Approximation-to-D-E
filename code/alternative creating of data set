@@ -1,0 +1,92 @@
+import numpy as np
+
+
+def gen_equation():
+    # Random order 1 - 6
+    order = np.random.randint(1, 7)
+
+    # Initialize coefficient array
+    coeffs = np.zeros(order)
+
+    # Random coefficients from -10 to 10
+    for i in range(order):
+        coeffs[i] = np.random.uniform(-10, 10)
+
+    # Random constant term from -10 to 10
+    const = np.random.uniform(-10, 10)
+
+    """print(order, " - order\n")
+    print(coeffs, " - coeffs\n")
+    print(const, " - const\n")"""
+    return order, coeffs, const
+
+
+def integrate_first_order(coeff, const, x):
+    c = const / coeff
+    yy = c * x
+    #print(yy, " - yy\n")
+    return yy
+
+def integrate_second_order(coeff1, coeff2, const, x):
+    c1 = const / (coeff2 - coeff1 ** 2)
+    c2 = -coeff1 * c1
+    yy = c1 * np.exp(coeff1 * x) + c2 * x
+    #print(yy, " - yy in integrate_second_order\n")
+    return yy
+
+def integrate_higher_order(coeffs, const, x, order, h=0.1):
+    # Define f(x) based on equation coefficients
+    def f(x):
+        expression = const
+        for i in range(1, len(coeffs) + 1):
+            expression += coeffs[-i] * x ** (i - 1)
+        return expression
+
+    yy = 0
+    xi = 0
+    while xi < x:
+        # Use h step size
+        k1 = f(xi)
+        k2 = f(xi + h / 2)
+        k3 = f(xi + h / 2)
+        k4 = f(xi + h)
+
+        y_new = yy + (h / 6) * (k1 + 2 * k2 + 2 * k3 + k4)
+        yy = y_new
+        xi += 1
+        #print(yy, "- yy in integrate_higher_order \n")
+    return yy
+
+def solve_equation(order, coeffs, const, x):
+    # Solve ODE based on order:
+    if order == 1:
+        y = integrate_first_order(coeffs[0], const, x)
+    elif order == 2:
+        y = integrate_second_order(coeffs[0], coeffs[1], const, x)
+    else:
+        y = integrate_higher_order(coeffs, const, order, x)
+
+    return y
+
+np.random.seed(0)
+X_list_coeffs = []
+X_list_const = []
+y_list = []
+for i in range(10):
+    # Random order 1-10, coefficients -10 to 10, constant -10 to 10
+    order, coeffs, const = gen_equation()
+
+    # Analytically solve equation at 100 x points from 0 to 10
+    x = np.linspace(0, 10, 100)
+    y = solve_equation(order, coeffs, const, x)
+
+    #y += np.random.randn(100) * 0.1 # Add noise
+
+
+    #print(coeffs, " - coeffs")
+    #print(const, " - const")
+    print(np.stack([coeffs]), "- coeffs")
+    print(np.stack([const]), " - consts")
+    X_list_coeffs.append(np.stack([coeffs])) # Save coefficients and solution data
+    X_list_const.append(np.stack([const])) # Save constant and solution data
+    y_list.append(y)
