@@ -1,24 +1,26 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # optional library
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.linear_model import LinearRegression
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, explained_variance_score
+import time  # test function
 
-
-np.random.seed(0)  # generate data for 10 examples
+np.random.seed(0)  # generate data set with 500 Linear Differential Equations
 X_list = []
 y_list = []
-for i in range(10):
+for i in range(500):
     X = np.random.rand(100, 1) * 20 - 10
     y = 2 * X - 1 + np.random.randn(100, 1) * 0.1
     X_list.append(X)
     y_list.append(y)
+    print(X_list)
+    print(y_list)
 
 
-mse_gp_list = []  # create empty lists to store & output the results
+mse_gp_list = []  # in the order to store & output the results we created empty lists
 mae_gp_list = []
 r2_gp_list = []
 explained_variance_gp_list = []
@@ -36,7 +38,7 @@ r2_nn_list = []
 explained_variance_nn_list = []
 rmse_nn_list = []
 
-for i in range(10):
+for i in range(500):
     kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))  # Gaussian Processes
     gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
     gp.fit(X_list[i], y_list[i])
@@ -53,7 +55,7 @@ for i in range(10):
     X_nn = np.linspace(-10, 10, 100).reshape(-1, 1)
     y_nn = nn.predict(X_nn)
 
-    y_pred_gp = gp.predict(X_list[i])  # evaluating the Gaussian processes moodel
+    y_pred_gp = gp.predict(X_list[i])  # evaluating the Gaussian processes model
     mse_gp = mean_squared_error(y_list[i], y_pred_gp)  # metric mse
     mse_gp_list.append(mse_gp)
     mae_gp = mean_absolute_error(y_list[i], y_pred_gp)  # metric mae
@@ -65,7 +67,7 @@ for i in range(10):
     rmse_gp = np.sqrt(mean_squared_error(y_list[i], y_pred_gp))  # metric root mean squared error
     rmse_gp_list.append(rmse_gp)
 
-    y_pred_poly = poly_reg.predict(X_list[i])  # evaluating the polynomial regression moodel
+    y_pred_poly = poly_reg.predict(X_list[i])  # evaluating the polynomial regression model
     mse_poly = mean_squared_error(y_list[i], y_pred_poly)
     mse_poly_list.append(mse_poly)
     mae_poly = mean_absolute_error(y_list[i], y_pred_poly)
@@ -89,17 +91,17 @@ for i in range(10):
     rmse_nn = np.sqrt(mean_squared_error(y_list[i], y_pred_nn))
     rmse_nn_list.append(rmse_nn)
 
-
-    plt.figure() # plot the results using matplotlib
+    ## we can uncomment this part of code for showing the obtained results via the graghs
+    '''plt.figure() # plot the results using matplotlib
     plt.scatter(X_list[i], y_list[i], color='black', label='Data')
     plt.plot(X_pred, y_pred, color='blue', label='Gaussian Processes')
     plt.plot(X_poly, y_poly, color='red', label='Polynomial Regression')
     plt.plot(X_nn, y_nn, color='green', label='Neural Networks')
     plt.title('Equation '+str(i+1))
     plt.legend()
-    plt.show()
+    #plt.show() '''
 
-# create dataframe from pandas for storing the obtained results
+
 results = pd.DataFrame({'MSE (Gaussian Processes)': mse_gp_list,
                         'MAE (Gaussian Processes)': mae_gp_list,
                         'R-squared (Gaussian Processes)': r2_gp_list,
@@ -114,12 +116,12 @@ results = pd.DataFrame({'MSE (Gaussian Processes)': mse_gp_list,
                         'MAE (Neural Networks)': mae_nn_list,
                         'R-squared (Neural Networks)': r2_nn_list,
                         'Explained Variance (Neural Networks)': explained_variance_nn_list,
-                        'RMSE (Neural Networks)': rmse_nn_list})
+                        'RMSE (Neural Networks)': rmse_nn_list})  # create dataframe from pandas for storing the obtained results
 
-print('MSE (Gaussian Processes)', mse_gp_list, "\n") # example of output
-print('MSE (Polynomial Regression)', mse_poly_list, "\n")
-print('MSE (Neural Networks)', mse_nn_list, "\n")
+# print('MSE (Gaussian Processes)', mse_gp_list, "\n")  # example of output
+# print('MSE (Polynomial Regression)', mse_poly_list, "\n")
+# print('MSE (Neural Networks)', mse_nn_list, "\n")
 
-#print(results.describe()) we can also output the data here
-results.to_excel(r'sample_data.xlsx')
+# print(results.describe()) we can also output the data here
+results.to_excel(r'sample_data.xlsx')  # we'll output and store the data into ecxel file: sample_data.xlsx
 
